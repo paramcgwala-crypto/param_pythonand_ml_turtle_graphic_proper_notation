@@ -1,0 +1,12 @@
+import turtle 
+
+t = turtle.Turtle()
+
+t.fd(100)
+t.lt(90)
+t.fd(100)
+t.lt(135)
+t.fd(141)
+t.lt(135)
+
+turtle.done()
