@@ -1,10 +1,10 @@
 marks = [78, 45, 89, 32, 67, 91, 55]
 
-total = 0
-highest = marks[0]
-lowest = marks[0]
-passed = 0
-failed = 0
+total = int(input("Enter the number"))
+highest = int(input("Enter the number"))
+lowest = int(input("Enter the number"))
+passed = int(input("Enter the number"))
+failed = int(input("Enter the number"))
 
 for mark in marks:
     total = total + mark

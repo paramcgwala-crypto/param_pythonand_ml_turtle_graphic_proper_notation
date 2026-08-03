@@ -13,3 +13,14 @@ if speed_km_hr >= 60 :
 else:
     print("you are good citizen ")
 
+
+""" Ye wala mai exrtra practice kr raha hu """
+
+user = float(input("Enter the number ="))
+speed = user*3.6
+
+if user  >=60:
+    print("Ye You are a great user",user)
+
+else:
+    print("You are great user")
