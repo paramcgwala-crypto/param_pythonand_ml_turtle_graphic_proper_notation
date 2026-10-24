@@ -1,0 +1,9 @@
+
+# Large datasets ko GitHub par upload nahi karna
+basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/MetroPT3(AirCompressor).csv
+basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/creditcard.csv
+
+# Python environment aur cache
+.venv/
+__pycache__/
+*.pyc
