@@ -7,3 +7,4 @@ basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/creditcard.csv
 .venv/
 __pycache__/
 *.pyc
+*.csv
