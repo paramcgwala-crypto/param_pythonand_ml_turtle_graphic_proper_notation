@@ -1,5 +1,15 @@
+# Virtual environments
 .venv/
+venv/
+
+# Python / Jupyter
 __pycache__/
 *.pyc
-basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/MetroPT3(AirCompressor).csv
-basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/creditcard.csv
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+
+# Large datasets (too big for GitHub) - download them separately
+02_data_analysis/basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/MetroPT3(AirCompressor).csv
+02_data_analysis/basic_Tradition_programing_python/Ml_new_Project_omly_for_prctice/creditcard.csv
