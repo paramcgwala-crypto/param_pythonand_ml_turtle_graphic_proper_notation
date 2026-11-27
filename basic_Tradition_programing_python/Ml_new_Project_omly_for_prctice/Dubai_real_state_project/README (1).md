@@ -1,111 +1,67 @@
-# Dubai Real Estate: Price and Deal Prediction
+# Dubai Property Price Prediction
 
-An end-to-end machine learning project on Dubai Land Department property transactions (January to 7 November 2026). It predicts the **price per sq.m** of a property, flags **"good deals"**, and groups **areas into segments** with an investment score.
+Estimates the **price per sq.m** of residential property in Dubai from 2026 Dubai Land Department transactions.
 
-## What this project does
+**Live demo:** https://dubai-price-predictor.streamlit.app/
 
-| # | Task | Type | Models |
-|---|------|------|--------|
-| 1 | Predict price per sq.m | Regression | Linear Regression, Decision Tree, Random Forest |
-| 2 | Detect a "Good Deal" | Classification | Logistic Regression, Decision Tree, Random Forest |
-| 3 | Group areas and score them | Clustering | K-Means |
+## What the app does
 
-**Good Deal definition:** a deal is a Good Deal if its price per sq.m is at least 10% below the median of its peers (same area, property type and number of rooms).
+- Choose area, project, property type, rooms and off-plan/ready status
+- Enter size and parking to get an estimated price per sq.m and total price
+- Optionally enter an asking price: it is flagged as a **Good Deal** if its price per sq.m is at least 10% below the median of similar deals (same area, type and rooms). This is a rule, not a model prediction.
 
 ## Data
 
-- Source: Dubai Land Department transactions (`Dubai_Realstate_transactions-2026-11-07.csv`)
-- Raw data: 186,662 rows, 23 columns
-- After cleaning: **114,069 residential sales**
+- Dubai Land Department transactions, January to November 2026
+- Raw data: 186,662 rows and 23 columns
+- After cleaning: **114,069 sales** (residential flats, villas and hotel apartments, 15 to 1000 sq.m, top and bottom 1% of price per sq.m removed)
 
-### Cleaning steps
-1. Kept only real buy/sell deals (removed mortgages, gifts and grants)
-2. Kept only residential Flats, Villas and Hotel Apartments
-3. Removed very small or very large areas and zero prices
-4. Removed duplicate transactions
-5. Removed extreme price-per-sq.m outliers (bottom 1% and top 1%)
+## Method
 
-## Feature engineering
+- Target: log of price per sq.m
+- Time-based split: oldest 90% for training, newest 10% for testing (11,407 deals, 30 Sep to 7 Nov 2026)
+- 15 features, including location, project, property type, size and peer-group comparisons
 
-- `log_area`, `month_idx` (time), `has_parking`
-- Peer features: `size_vs_peer`, `size_vs_project`, `peer_count`
-- Small projects (fewer than 50 sales) grouped as "Other"
-- Trees use label-coded categories; linear models use one-hot encoding and scaled numbers
+## Price prediction results (test data)
 
-## Train / test split
+| Model                                 | R² (log price) | Median error | Within 20%   |
+| ------------------------------------- | -------------- | ------------ | ------------ |
+| Linear Regression                     | 0.791          | 8.0%         | 84.3%        |
+| Decision Tree                         | 0.774          | 6.5%         | 84.3%        |
+| Random Forest (tuned)                 | 0.816          | 5.7%         | 86.8%        |
+| **Random Forest (deployed, smaller)** | **0.815**      | **5.8%**     | not measured |
 
-The data is split **by date, not randomly**: the oldest 90% is used for training and the **latest 10% (30 Sep to 7 Nov 2026) is the test set**. This mimics real life (learn from the past, predict the future) and avoids data leakage.
+The deployed model uses fewer, shallower trees to keep the file small. It is retrained on all cleaned data after being scored on the test split.
 
-## Results (on unseen test deals)
+## Other analysis in the notebook
 
-### Regression: price per sq.m
-
-| Model | R2 | Median error | Within 20% |
-|-------|----|--------------|------------|
-| Linear Regression | 0.791 | 8.0% | 84.3% |
-| Decision Tree | 0.774 | 6.5% | 84.3% |
-| **Random Forest (tuned)** | **0.816** | **5.7%** | **86.8%** |
-
-Random Forest was tuned with `RandomizedSearchCV` (3-fold cross-validation, CV R2 0.854).
-
-### Classification: Good Deal
-
-About 24% of deals are Good Deals (imbalanced data), so `class_weight` was used and accuracy alone was not trusted.
-
-| Model | Accuracy | Precision | Recall | F1 |
-|-------|----------|-----------|--------|----|
-| Logistic Regression | 0.714 | 0.491 | 0.838 | 0.619 |
-| Decision Tree | 0.721 | 0.499 | 0.796 | 0.613 |
-| **Random Forest (threshold 0.6)** | **0.829** | **0.685** | **0.709** | **0.697** |
-
-### Clustering: area segments (K-Means, K = 4)
-
-97 areas (with 100+ sales) were grouped into: **Luxury / premium**, **Affordable high-volume**, **Ready communities** and **Off-plan hotspots**. Each area also gets an **investment score** (30% liquidity, 25% price growth, 25% price stability, 25% value vs its cluster).
-
-## Project structure
-
-```
-.
-├── Dubai_RealEstate_ML_11.ipynb              # full notebook
-├── Dubai_Realstate_transactions-2026-11-07.csv   # data (add this file to run)
-├── models/
-│   ├── price_regressor.joblib
-│   ├── good_deal_classifier.joblib
-│   ├── area_kmeans.joblib
-│   ├── feature_info.joblib
-│   ├── area_ranking.csv
-│   ├── regression_results.csv
-│   └── classification_results.csv
-└── README.md
-```
-
-## How to run
-
-```bash
-pip install numpy pandas matplotlib seaborn scikit-learn joblib jupyter
-jupyter notebook Dubai_RealEstate_ML_11.ipynb
-```
-
-Place the CSV file in the same folder as the notebook, then run all cells.
-
-## Tech stack
-
-Python, pandas, NumPy, scikit-learn, Matplotlib, Seaborn, joblib
+- **Good Deal classifier** (Random Forest, threshold 0.6): accuracy 0.829, precision 0.685, recall 0.709, F1 0.697. Not used in the app.
+- **Area clustering:** K-Means (K=4) on areas with at least 100 sales, plus a heuristic investment score.
 
 ## Limitations
 
-- Only about 10 months of data from a single year, so seasonality and long-term trends are not captured. Price growth is a weak signal, not a forecast.
-- No rent data, so rental yield and ROI cannot be calculated.
-- The Good Deal label comes from peer comparison, not real returns. Unit details such as floor and view are missing, so precision stays near 70%.
-- The investment score is a heuristic and is not trained on any financial return.
+- **Some data leakage:** peer-group statistics, project size medians, the rare-project grouping and the Good Deal label were computed on the full dataset, including test rows. The scores above may be optimistic.
+- Only about 10 months of data, so this is not a price forecast.
+- No floor, view or rent data.
+- Expensive properties (above roughly AED 35,000 per sq.m) tend to be under-predicted.
+- Learning project, not investment advice.
 
-## Future work
+## Run locally
 
-- Add rental data (for example from Dubai Pulse) to compute yield
-- Add more years of data
-- Build a backend `predict()` function and a small web app using the saved models
+From this project folder:
 
-## Author
+```bash
+pip install -r Deploy/requirements.txt
+python -m streamlit run Deploy/app.py
+```
 
-**Parmeet Singh**: Aspiring Machine Learning Engineer
-GitHub: [paramcgwala-crypto](https://github.com/paramcgwala-crypto)
+## Files
+
+- `Dubai_RealEstate_ML_11.ipynb`: cleaning, analysis and models
+- `Deploy/app.py`: Streamlit app
+- `Deploy/model.pkl`: deployed model and lookup tables
+- `Deploy/export_cell.py`: creates the model file (run in the notebook with `%run -i Deploy/export_cell.py`)
+
+## Tech stack
+
+Python, pandas, NumPy, scikit-learn, seaborn, Matplotlib, Streamlit
